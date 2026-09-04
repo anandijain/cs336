@@ -48,11 +48,11 @@ fn main() {
         let mut cur = '.';
         loop {
             cur = itos[&dists[stoi[&cur]].sample(&mut rng)];
-            print!("{cur}");
             if cur == '.' {
                 println!();
                 break;
             }
+            print!("{cur}");
         }
     }
     let zero_bigrams: Vec<_> = counts.indexed_iter().filter_map(|((i, j), &count)| {
