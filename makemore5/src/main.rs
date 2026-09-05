@@ -9,14 +9,14 @@ fn wrap_dots<'a>(s: &'a str) -> impl Iterator<Item = char> {
 }
 
 fn generate_name(
-    mut rng: &mut StdRng,
+    rng: &mut StdRng,
     dists: &Vec<WeightedIndex<usize>>,
     itos: &HashMap<usize, char>,
 ) -> String {
     let mut cur = 0;
     let mut word = vec![];
     loop {
-        cur = dists[cur].sample(&mut rng);
+        cur = dists[cur].sample(rng);
         if cur == 0 {
             break;
         }
@@ -26,24 +26,22 @@ fn generate_name(
 }
 
 fn word_probability(s: &str, probs: &Array2<f64>, stoi: &HashMap<char, usize>) -> f64 {
-    // let mut p = 1.0;
-    // let mut chars = wrap_dots(s);
-    // let mut prev = chars.next().unwrap();
-    // for ch in chars {
-    //     p *= probs[[stoi[&prev], stoi[&ch]]];
-    //     prev = ch;
-    // }
-    // chars.collect()
-    // p
     wrap_dots(s)
         .zip(wrap_dots(s).skip(1))
         .map(|(prev, cur)| probs[[stoi[&prev], stoi[&cur]]])
         .product()
 }
 
+fn word_log_probability(s: &str, probs: &Array2<f64>, stoi: &HashMap<char, usize>) -> f64 {
+    wrap_dots(s)
+        .zip(wrap_dots(s).skip(1))
+        .map(|(prev, cur)| probs[[stoi[&prev], stoi[&cur]]].ln())
+        .sum()
+}
+
 fn main() {
     let s = fs::read_to_string("names.txt").unwrap();
-
+    let ns: Vec<_> = s.lines().collect();
     let alpha: Vec<_> = once('.').chain('a'..='z').collect();
     let n_alpha = alpha.len();
     let itos: HashMap<usize, char> = alpha.iter().copied().enumerate().collect();
@@ -52,7 +50,7 @@ fn main() {
     let mut counts = Array2::<usize>::zeros((n_alpha, n_alpha));
 
     // let mut ws = s.lines();
-    for w in s.lines() {
+    for w in ns {
         let mut chars = wrap_dots(w);
         let mut prev = chars.next().unwrap();
         for ch in chars {
@@ -76,6 +74,11 @@ fn main() {
         .collect();
 
     let mut rng = StdRng::seed_from_u64(42);
-    let names: Vec<_> = (0..10).map(|_| generate_name(&mut rng, &dists, &itos)).collect();
+    let names: Vec<_> = (0..10)
+        .map(|_| generate_name(&mut rng, &dists, &itos))
+        .collect();
     println!("{names:?}");
+
+    ns.iter().map(|n|)
+
 }
